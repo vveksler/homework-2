@@ -15,15 +15,17 @@ export default class Chat extends Component {
   };
 
   sendMessageOnEnter = e => {
-    if (e.key === 'Enter' && this.state.messageInput !== '') {
+    const { messageInput } = this.state;
+
+    if (e.key === 'Enter' && messageInput !== '') {
       this.setState(
-        {
-          messages: [...this.state.messages, { text: this.state.messageInput }],
-          messageInput: ''
+        ({ messages, messageInput }) => {
+          return {
+            messages: [...messages, { text: messageInput }],
+            messageInput: ''
+          };
         },
-        () => {
-          this.performAutoScroll();
-        }
+        () => this.performAutoScroll()
       );
     }
   };
@@ -32,24 +34,28 @@ export default class Chat extends Component {
 
   scrollToBottom = () => {
     if (this.messagesEnd)
-      this.messagesEnd.scrollIntoView({ behavior: 'smooth' });
+      this.messagesEnd.scrollIntoView({
+        behavior: 'smooth'
+      });
   };
 
-  componentDidMount() {
-    this.scrollToBottom();
+  setRef = el => (this.messagesEnd = el);
+
+  get getMessages() {
+    const { messages } = this.state;
+
+    return messages.map(({ text }, index) => (
+      <Message key={index} text={text} setRef={this.setRef} />
+    ));
   }
 
   render() {
-    const { messageInput, messages } = this.state;
+    const { messageInput } = this.state;
 
     return (
       <div className="chat">
         <div className="message-list">
-          <div className="messages">
-            {messages.map((message, index) => (
-              <Message key={index} text={message.text} />
-            ))}
-          </div>
+          <div className="messages">{this.getMessages}</div>
         </div>
         <input
           type="text"
